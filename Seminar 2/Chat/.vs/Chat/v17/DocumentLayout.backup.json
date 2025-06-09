@@ -1,0 +1,96 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|c:\\users\\mlmuradyan\\desktop\\gb education\\net application\\seminar 2\\chat\\chat\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|solutionrelative:chat\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|c:\\users\\mlmuradyan\\desktop\\gb education\\net application\\seminar 2\\chat\\chat\\client.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|solutionrelative:chat\\client.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|c:\\users\\mlmuradyan\\desktop\\gb education\\net application\\seminar 2\\chat\\chat\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|solutionrelative:chat\\server.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|c:\\users\\mlmuradyan\\desktop\\gb education\\net application\\seminar 2\\chat\\chat\\message.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{673E1A66-7289-4702-A937-334FD16F6377}|Chat\\Chat.csproj|solutionrelative:chat\\message.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 5,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "Server.cs",
+              "DocumentMoniker": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Server.cs",
+              "RelativeDocumentMoniker": "Chat\\Server.cs",
+              "ToolTip": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Server.cs",
+              "RelativeToolTip": "Chat\\Server.cs",
+              "ViewState": "AgIAAA0AAAAAAAAAAAAswC4AAAAJAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T22:21:59.967Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Message.cs",
+              "DocumentMoniker": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Message.cs",
+              "RelativeDocumentMoniker": "Chat\\Message.cs",
+              "ToolTip": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Message.cs",
+              "RelativeToolTip": "Chat\\Message.cs",
+              "ViewState": "AgIAAAkAAAAAAAAAAAA0wBsAAAABAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T22:21:24.606Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "Client.cs",
+              "DocumentMoniker": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Client.cs",
+              "RelativeDocumentMoniker": "Chat\\Client.cs",
+              "ToolTip": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Client.cs",
+              "RelativeToolTip": "Chat\\Client.cs",
+              "ViewState": "AgIAAAoAAAAAAAAAAAA7wBUAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T22:20:54.173Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Program.cs",
+              "RelativeDocumentMoniker": "Chat\\Program.cs",
+              "ToolTip": "C:\\Users\\MLMuradyan\\Desktop\\GB Education\\Net Application\\Seminar 2\\Chat\\Chat\\Program.cs",
+              "RelativeToolTip": "Chat\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAAAkAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-06-08T22:16:59.531Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
