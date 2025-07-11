@@ -1,0 +1,15 @@
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.AssemblyInfoInputs.cache
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.AssemblyInfo.cs
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.csproj.CoreCompileInputs.cache
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.sourcelink.json
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\bin\Debug\net8.0\Seminar4_HW.exe
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\bin\Debug\net8.0\Seminar4_HW.deps.json
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\bin\Debug\net8.0\Seminar4_HW.runtimeconfig.json
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\bin\Debug\net8.0\Seminar4_HW.dll
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\bin\Debug\net8.0\Seminar4_HW.pdb
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.dll
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\refint\Seminar4_HW.dll
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.pdb
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\Seminar4_HW.genruntimeconfig.cache
+C:\Users\MLMuradyan\Desktop\GB Education\Net Application\Seminar4_HW\Seminar4_HW\obj\Debug\net8.0\ref\Seminar4_HW.dll
