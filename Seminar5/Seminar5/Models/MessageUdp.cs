@@ -22,6 +22,11 @@ namespace Seminar5.Models
         public string ToName { get; set; }
         public string Text { get; set; }
 
+        public override string ToString()
+        {
+            return $"{DateTime.Now} \n Received messate {Text} \n from {FromName}";
+        }
+
         public string ToJson()
         {
             return JsonSerializer.Serialize(this);
