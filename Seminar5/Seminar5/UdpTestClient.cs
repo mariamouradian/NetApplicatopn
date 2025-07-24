@@ -3,23 +3,31 @@ using Seminar5.Models;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using System.Text.Json;
 
 namespace Seminar5
 {
-    public class Client
+    public class Client : IDisposable
     {
-        // Код по семинару 6 ниже:
-
         private readonly IMessageSource _messageSource;
         private readonly IPEndPoint _peerEndPoint;
         private readonly string _name;
-        private bool _isRunning = true;
+        public volatile bool _isRunning;
+        private readonly CancellationTokenSource _cts = new();
+
+        public event Action<MessageUdp>? MessageReceived;
 
         public Client(IMessageSource messageSource, IPEndPoint peerEndPoint, string name)
         {
             _messageSource = messageSource;
             _peerEndPoint = peerEndPoint;
             _name = name;
+        }
+
+        public void Stop()
+        {
+            _isRunning = false;
+            _cts.Cancel();
         }
 
         private void Register()
@@ -45,11 +53,9 @@ namespace Seminar5
         {
             Register();
 
-            // Поток для получения сообщений
             var listenerThread = new Thread(Listener);
             listenerThread.Start();
 
-            // Основной поток для отправки сообщений
             Sender();
 
             _isRunning = false;
@@ -58,24 +64,33 @@ namespace Seminar5
 
         public void Listener()
         {
-            IPEndPoint ep = new IPEndPoint(IPAddress.Any, 0);
+            _isRunning = true;
+            IPEndPoint ep = new(IPAddress.Any, 0);
+
             while (_isRunning)
             {
                 try
                 {
-                    MessageUdp message = _messageSource.ReceiveMessage(ref ep);
-                    Console.WriteLine($"\n[От {message.FromName}]: {message.Text}");
-                    Console.Write("> ");
+                    var message = _messageSource.ReceiveMessage(ref ep);
+                    if (message != null)
+                    {
+                        Console.WriteLine($"\n[От {message.FromName}]: {message.Text}");
+                        MessageReceived?.Invoke(message);
+                    }
+                    else if (_cts.Token.WaitHandle.WaitOne(100))
+                    {
+                        break;
+                    }
                 }
-                catch (SocketException ex) when (ex.ErrorCode == 10054)
+                catch (OperationCanceledException)
                 {
-                    Console.WriteLine("\nСервер недоступен. Попытка переподключения...");
-                    Thread.Sleep(3000);
-                    Register();
+                    break;
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"\nОшибка приема: {ex.Message}");
+                    Console.WriteLine($"Ошибка приема: {ex.Message}");
+                    if (_cts.Token.IsCancellationRequested)
+                        break;
                 }
             }
         }
@@ -87,21 +102,21 @@ namespace Seminar5
                 try
                 {
                     Console.Write("> ");
-                    string text = Console.ReadLine();
+                    string? text = Console.ReadLine();
 
-                    if (text?.ToLower() == "/exit")
+                    if (string.IsNullOrWhiteSpace(text))
+                        continue;
+
+                    if (text.ToLower() == "/exit")
                     {
                         _isRunning = false;
                         continue;
                     }
 
-                    if (string.IsNullOrEmpty(text))
-                        continue;
-
                     Console.Write("Кому: ");
-                    string toName = Console.ReadLine();
+                    string? toName = Console.ReadLine();
 
-                    if (string.IsNullOrEmpty(toName))
+                    if (string.IsNullOrWhiteSpace(toName))
                     {
                         Console.WriteLine("Имя получателя не может быть пустым");
                         continue;
@@ -109,9 +124,9 @@ namespace Seminar5
 
                     var message = new MessageUdp()
                     {
-                        Text = text,
+                        Text = text.Trim(),
                         FromName = _name,
-                        ToName = toName,
+                        ToName = toName.Trim(),
                         Command = Command.Message
                     };
 
@@ -121,8 +136,16 @@ namespace Seminar5
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Ошибка отправки: {ex.Message}");
+                    if (!_isRunning) break;
                 }
             }
+        }
+
+        public void Dispose()
+        {
+            Stop();
+            _cts?.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }

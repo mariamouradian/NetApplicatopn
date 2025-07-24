@@ -12,10 +12,7 @@ namespace Seminar5.Abstraction
     public interface IMessageSource
     {
         UdpClient UdpClient { get; }
-
+        MessageUdp? ReceiveMessage(ref IPEndPoint? endPoint);
         void SendMessage(MessageUdp message, IPEndPoint endPoint);
-
-        MessageUdp ReceiveMessage(ref IPEndPoint endPoint);
-
     }
 }

@@ -4,32 +4,37 @@ using Seminar5.Abstraction;
 using Seminar5.Models;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Seminar5
 {
-    public class Server
+    public class Server : IDisposable
     {
         private readonly Dictionary<string, IPEndPoint> _clients = new();
         private readonly IMessageSource _messageSource;
+        private readonly DbContextOptions<Context> _dbOptions;
+        private bool _disposed;
 
         public Server(IMessageSource messageSource)
         {
             _messageSource = messageSource;
+            _dbOptions = new DbContextOptionsBuilder<Context>()
+                .UseNpgsql("Host=localhost;Port=5432;Database=NetAppSem5;Username=postgres;Password=yourpassword")
+                .Options;
         }
 
         public void Work()
         {
             Console.WriteLine("SERVER: Ожидание сообщений... (Ctrl+C для выхода)");
 
-            IPEndPoint remoteEp = new(IPAddress.Any, 0);
-            while (true)
+            IPEndPoint? remoteEp = new(IPAddress.Any, 0);
+            while (!_disposed)
             {
                 try
                 {
                     var message = _messageSource.ReceiveMessage(ref remoteEp);
+                    if (message == null) continue;
 
                     Console.ForegroundColor = ConsoleColor.Cyan;
                     Console.WriteLine($"\nSERVER: Получено {message.Command} от {message.FromName}");
@@ -50,24 +55,21 @@ namespace Seminar5
             }
         }
 
-        private void ProcessMessage(MessageUdp message, IPEndPoint fromEp)
+        public void ProcessMessage(MessageUdp message, IPEndPoint fromEp)
         {
             switch (message.Command)
             {
                 case Command.Register:
                     RegisterClient(message, fromEp);
                     break;
-
                 case Command.Message:
                     Console.WriteLine($"Пересылка сообщения для {message.ToName}");
                     RelayMessage(message);
                     break;
-
                 case Command.Confirmation:
                     Console.WriteLine($"Подтверждение получения сообщения ID={message.Id}");
                     ConfirmDelivery(message.Id);
                     break;
-
                 case Command.List:
                     Console.WriteLine($"Запрос непрочитанных сообщений для {message.FromName}");
                     SendUnreadMessages(message.FromName, fromEp);
@@ -82,7 +84,6 @@ namespace Seminar5
                 _clients[message.FromName] = fromEp;
                 Console.WriteLine($"Регистрация: {message.FromName} ({fromEp})");
 
-                // Отправляем подтверждение
                 var response = new MessageUdp
                 {
                     Command = Command.Confirmation,
@@ -92,7 +93,6 @@ namespace Seminar5
                 };
 
                 _messageSource.SendMessage(response, fromEp);
-                Console.WriteLine($"Отправлено подтверждение для {message.FromName}");
             }
             catch (Exception ex)
             {
@@ -108,15 +108,21 @@ namespace Seminar5
                 return;
             }
 
-            using var ctx = new Context();
-            var fromUser = ctx.Users.First(u => u.Name == message.FromName);
-            var toUser = ctx.Users.First(u => u.Name == message.ToName);
+            using var ctx = new Context(_dbOptions);
+            var fromUser = ctx.Users.FirstOrDefault(u => u.Name == message.FromName);
+            var toUser = ctx.Users.FirstOrDefault(u => u.Name == message.ToName);
+
+            if (fromUser == null || toUser == null)
+            {
+                Console.WriteLine("Один из пользователей не найден в базе данных");
+                return;
+            }
 
             var dbMessage = new Message
             {
                 FromUser = fromUser,
                 ToUser = toUser,
-                Text = message.Text,
+                Text = message.Text ?? string.Empty,
                 Received = false
             };
 
@@ -129,7 +135,7 @@ namespace Seminar5
                 Command = Command.Message,
                 FromName = message.FromName,
                 ToName = message.ToName,
-                Text = message.Text
+                Text = message.Text ?? string.Empty
             };
 
             _messageSource.SendMessage(forwardMessage, targetEp);
@@ -139,7 +145,7 @@ namespace Seminar5
         {
             if (messageId == null) return;
 
-            using var ctx = new Context();
+            using var ctx = new Context(_dbOptions);
             var message = ctx.Messages.FirstOrDefault(m => m.Id == messageId);
             if (message != null)
             {
@@ -150,9 +156,10 @@ namespace Seminar5
 
         private void SendUnreadMessages(string userName, IPEndPoint targetEp)
         {
-            using var ctx = new Context();
+            using var ctx = new Context(_dbOptions);
             var user = ctx.Users
                 .Include(u => u.ToMessages)
+                .ThenInclude(m => m.FromUser)
                 .FirstOrDefault(u => u.Name == userName);
 
             if (user == null) return;
@@ -172,6 +179,15 @@ namespace Seminar5
                 message.Received = true;
             }
             ctx.SaveChanges();
+        }
+
+        public void Dispose()
+        {
+            if (!_disposed)
+            {
+                _disposed = true;
+                GC.SuppressFinalize(this);
+            }
         }
     }
 }

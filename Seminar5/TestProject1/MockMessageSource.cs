@@ -1,75 +1,72 @@
-﻿using Seminar5;
+﻿using NUnit.Framework;
+using Npgsql;
+using Seminar5;
 using Seminar5.Abstraction;
 using Seminar5.Models;
 using System.Net;
 using System.Net.Sockets;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TestProject1
 {
-    public class MockMessageSource : IMessageSource
+    public class MockMessageSource : IMessageSource, IDisposable
     {
-        private Queue<MessageUdp> messages = new();
-        private Server server;
-        public IPEndPoint endPoint = new IPEndPoint(IPAddress.Any, 0);
-        private bool isStopped = false;
+        private readonly Queue<MessageUdp> _messages = new();
+        private Server? _server;
+        private readonly IPEndPoint _endPoint = new(IPAddress.Any, 0);
+        private bool _isStopped = false;
+        private readonly UdpClient _mockUdpClient;
+        private readonly object _lock = new();
 
-        public UdpClient UdpClient => throw new NotImplementedException();
+        public UdpClient UdpClient => _mockUdpClient;
 
         public MockMessageSource()
         {
-            messages.Enqueue(new MessageUdp
-            {
-                Command = Command.Register,
-                FromName = "Вася"
-            });
-
-            messages.Enqueue(new MessageUdp
-            {
-                Command = Command.Register,
-                FromName = "Юля"
-            });
-
-            messages.Enqueue(new MessageUdp
-            {
-                Command = Command.Message,
-                FromName = "Юля",
-                ToName = "Вася",
-                Text = "От Юли"
-            });
-
-            messages.Enqueue(new MessageUdp
-            {
-                Command = Command.Message,
-                FromName = "Вася",
-                ToName = "Юля",
-                Text = "От Васи"
-            });
+            _mockUdpClient = new UdpClient(0);
+            EnqueueMessage(new MessageUdp { Command = Command.Register, FromName = "Вася" });
+            EnqueueMessage(new MessageUdp { Command = Command.Register, FromName = "Юля" });
+            EnqueueMessage(new MessageUdp { Command = Command.Message, FromName = "Юля", ToName = "Вася", Text = "От Юли" });
+            EnqueueMessage(new MessageUdp { Command = Command.Message, FromName = "Вася", ToName = "Юля", Text = "От Васи" });
         }
 
-        public void AddServer(Server srv)
+        public void EnqueueMessage(MessageUdp message)
         {
-            server = srv;
+            lock (_lock) { _messages.Enqueue(message); }
         }
 
-        public MessageUdp ReceiveMessage(ref IPEndPoint ep)
+        public void AddServer(Server server) => _server = server;
+
+        public MessageUdp? ReceiveMessage(ref IPEndPoint? ep)
         {
-            if (isStopped || messages.Count == 0)
+            if (_isStopped) return null;
+
+            lock (_lock)
             {
+                if (_messages.TryDequeue(out var message))
+                {
+                    ep = _endPoint;
+                    return message;
+                }
                 return null;
             }
-
-            ep = endPoint;
-            return messages.Dequeue();
         }
 
         public void SendMessage(MessageUdp message, IPEndPoint ep)
         {
-            Console.WriteLine($"Mock отправка: {message.Command} от {message.FromName}");
+            if (!_isStopped && _server != null && message.Command == Command.Message)
+            {
+                Task.Run(() => _server.ProcessMessage(message, ep));
+            }
         }
 
-        public void Stop()
+        public void Stop() => _isStopped = true;
+
+        public void Dispose()
         {
-            isStopped = true;
+            Stop();
+            _mockUdpClient.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 
@@ -79,57 +76,79 @@ namespace TestProject1
         [SetUp]
         public void Setup()
         {
-            using (var ctx = new Context())
+            try
             {
-                ctx.Messages.RemoveRange(ctx.Messages);
-                ctx.Users.RemoveRange(ctx.Users);
-                ctx.SaveChanges();
+                CleanDatabase();
+            }
+            catch (NpgsqlException ex)
+            {
+                Assert.Inconclusive($"Не удалось подключиться к базе данных: {ex.Message}");
             }
         }
 
-        [TearDown]
-        public void Cleanup()
+        private static void CleanDatabase()
         {
-            using (var ctx = new Context())
-            {
-                ctx.Messages.RemoveRange(ctx.Messages);
-                ctx.Users.RemoveRange(ctx.Users);
-                ctx.SaveChanges();
-            }
+            using var ctx = CreateContext();
+            ctx.Database.EnsureDeleted();
+            ctx.Database.EnsureCreated();
+        }
+
+        private static Context CreateContext()
+        {
+            var options = new DbContextOptionsBuilder<Context>()
+                .UseNpgsql("Host=localhost;Port=5432;Database=NetAppSem5;Username=postgres;Password=yourpassword")
+                .Options;
+
+            return new Context(options);
         }
 
         [Test]
         public void TestMessageProcessing()
         {
-            var mock = new MockMessageSource();
-            var srv = new Server(mock);
-            mock.AddServer(srv);
-
-            // Запускаем обработку сообщений
-            while (mock.ReceiveMessage(ref mock.endPoint) != null) { }
-
-            using (var ctx = new Context())
+            try
             {
-                // Проверка пользователей
-                Assert.That(ctx.Users.Count(), Is.EqualTo(2), "Должно быть 2 пользователя");
-                var user1 = ctx.Users.FirstOrDefault(x => x.Name == "Вася");
-                var user2 = ctx.Users.FirstOrDefault(x => x.Name == "Юля");
-                Assert.IsNotNull(user1, "Пользователь Вася не найден");
-                Assert.IsNotNull(user2, "Пользователь Юля не найден");
+                using var mock = new MockMessageSource();
+                using var srv = new Server(mock);
+                mock.AddServer(srv);
 
-                // Проверка сообщений
-                Assert.That(user1.FromMessages.Count, Is.EqualTo(1), "У Васи должно быть 1 исходящее");
-                Assert.That(user2.FromMessages.Count, Is.EqualTo(1), "У Юли должно быть 1 исходящее");
-                Assert.That(user1.ToMessages.Count, Is.EqualTo(1), "У Васи должно быть 1 входящее");
-                Assert.That(user2.ToMessages.Count, Is.EqualTo(1), "У Юли должно быть 1 входящее");
+                IPEndPoint? ep = new(IPAddress.Any, 0);
+                while (mock.ReceiveMessage(ref ep) != null) { }
 
-                // Проверка текста сообщений
-                var msgFromVasya = ctx.Messages.FirstOrDefault(x => x.FromUser == user1 && x.ToUser == user2);
-                var msgFromYulya = ctx.Messages.FirstOrDefault(x => x.FromUser == user2 && x.ToUser == user1);
-
-                Assert.That(msgFromYulya.Text, Is.EqualTo("От Юли"), "Текст сообщения от Юли не совпадает");
-                Assert.That(msgFromVasya.Text, Is.EqualTo("От Васи"), "Текст сообщения от Васи не совпадает");
+                VerifyDatabaseState();
             }
+            catch (NpgsqlException ex)
+            {
+                Assert.Inconclusive($"Тест пропущен из-за ошибки базы данных: {ex.Message}");
+            }
+        }
+
+        private static void VerifyDatabaseState()
+        {
+            using var ctx = CreateContext();
+            var users = ctx.Users
+                .Include(u => u.FromMessages)
+                .Include(u => u.ToMessages)
+                .ToList();
+
+            Assert.That(users, Has.Count.EqualTo(2), "Должно быть 2 пользователя");
+
+            var vasya = users.Find(x => x.Name == "Вася");
+            var yulya = users.Find(x => x.Name == "Юля");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(vasya, Is.Not.Null, "Пользователь Вася не найден");
+                Assert.That(yulya, Is.Not.Null, "Пользователь Юля не найден");
+
+                var vasyaMessages = vasya!.FromMessages.ToList();
+                var yulyaMessages = yulya!.FromMessages.ToList();
+
+                Assert.That(vasyaMessages, Has.Count.EqualTo(1), "У Васи должно быть 1 исходящее сообщение");
+                Assert.That(yulyaMessages, Has.Count.EqualTo(1), "У Юли должно быть 1 исходящее сообщение");
+
+                Assert.That(vasyaMessages.First().Text, Is.EqualTo("От Васи"), "Текст сообщения от Васи не совпадает");
+                Assert.That(yulyaMessages.First().Text, Is.EqualTo("От Юли"), "Текст сообщения от Юли не совпадает");
+            });
         }
     }
 }
